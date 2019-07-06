@@ -36,12 +36,12 @@ cd ~/nginx
 wget https://nginx.org/download/nginx-1.17.1.tar.gz
 tar zxf nginx-1.17.1.tar.gz && rm nginx-1.17.1.tar.gz
 
-# SPDY, HTTP2 HPACK, Dynamic TLS Record, Fix Http2 Push Error Patch
+# SPDY, HTTP2 HPACK, Dynamic TLS Record, Fix Http2 Push Error patch
 pushd nginx-1.17.1
 curl https://raw.githubusercontent.com/kn007/patch/master/nginx.patch | patch -p1
 popd
 
-# Strict-SNI Patch
+# Strict-SNI patch
 pushd nginx-1.17.1
 curl https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/nginx_strict-sni_1.15.10.patch | patch -p1
 popd
@@ -55,7 +55,7 @@ popd
 wget https://www.openssl.org/source/openssl-1.1.1c.tar.gz
 tar zxf openssl-1.1.1c.tar.gz && rm zxf openssl-1.1.1c.tar.gz
 
-# OpenSSL Patch
+# OpenSSL patch
 pushd openssl-1.1.1c
 curl https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/openssl-1.1.1c-chacha_draft.patch | patch -p1
 popd
@@ -77,8 +77,7 @@ sudo ldconfig
 popd
 
 # zlib Cloudflare ver
-git -b master clone https://github.com/cloudflare/zlib.git
-mv zlib-1.2.11 zlib
+git clone -b master https://github.com/cloudflare/zlib.git
 pushd zlib
 ./configure
 make && sudo make install
@@ -127,7 +126,7 @@ mv ngx_devel_kit-0.3.1rc1 ngx_devel_kit
 
 if $vod
 then
-  # vod module
+  # nginx-vod-module
   wget https://github.com/kaltura/nginx-vod-module/archive/1.24.tar.gz
   tar zxf 1.24.tar.gz && rm 1.24.tar.gz
   mv nginx-vod-module-1.24 nginx-vod-module
@@ -149,7 +148,7 @@ make && sudo make install
 sudo ldconfig
 popd
 
-# GeoIP2 module
+# ngx_http_geoip2_module
 wget https://github.com/leev/ngx_http_geoip2_module/archive/3.2.tar.gz
 tar zxf 3.2.tar.gz && rm 3.2.tar.gz
 mv ngx_http_geoip2_module-3.2 ngx_http_geoip2_module

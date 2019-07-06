@@ -6,6 +6,11 @@ Useful scripts for vps management
 
 install nginx 1.17.1 with TLS1.3 and Strict-SNI support
 
+use it as follow:
+```
+curl https://raw.githubusercontent.com/ShadowySpirits/vps-shell/master/nginx_install.sh | bash
+```
+
 
 ### parameter
 - --with-vod &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: add nginx-vod-module
@@ -16,3 +21,8 @@ install nginx 1.17.1 with TLS1.3 and Strict-SNI support
 ## get_gfwlist.sh.sh
 
 download gfw domain list
+
+use it as follow:
+```
+curl https://raw.githubusercontent.com/ShadowySpirits/vps-shell/master/get_gfwlist.sh | bash
+```
