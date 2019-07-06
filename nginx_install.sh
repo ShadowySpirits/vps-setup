@@ -76,10 +76,8 @@ echo '/usr/local/lib' | sudo tee /etc/ld.so.conf.d/local.conf
 sudo ldconfig
 popd
 
-# zlib
-#git clone https://github.com/cloudflare/zlib.git # Cloudflare ver
-wget https://zlib.net/zlib-1.2.11.tar.gz
-tar xzvf zlib-1.2.11.tar.gz && rm zlib-1.2.11.tar.gz
+# zlib Cloudflare ver
+git -b master clone https://github.com/cloudflare/zlib.git
 mv zlib-1.2.11 zlib
 pushd zlib
 ./configure
