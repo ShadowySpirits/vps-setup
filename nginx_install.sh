@@ -132,6 +132,8 @@ pushd lua-resty-lrucache
 make && sudo -E make install
 popd
 
+sudo cp -r /usr/local/lib/lua/5.1 /usr/local/share/lua/5.1
+
 # lua module
 wget https://github.com/openresty/lua-nginx-module/archive/v0.10.15.tar.gz
 tar zxf v0.10.15.tar.gz && rm v0.10.15.tar.gz
