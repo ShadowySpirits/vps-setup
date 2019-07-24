@@ -102,6 +102,7 @@ pushd luajit-2.1
 make && sudo make install
 ldconfig
 popd
+
 export LUA_INCLUDE_DIR=/usr/local/include/luajit-2.1
 export LUA_VERSION=5.1
 export LUAJIT_LIB=/usr/local/lib
@@ -112,7 +113,7 @@ wget https://github.com/openresty/lua-resty-core/archive/v0.1.17.tar.gz
 tar xzvf v0.1.17.tar.gz && rm v0.1.17.tar.gz
 mv lua-resty-core-0.1.17 lua-resty-core
 pushd lua-resty-core
-make && make install
+make && sudo -E make install
 popd
 
 # lua cjson
@@ -120,7 +121,7 @@ wget https://github.com/openresty/lua-cjson/archive/2.1.0.7.tar.gz
 tar xzvf 2.1.0.7.tar.gz && rm 2.1.0.7.tar.gz
 mv lua-cjson-2.1.0.7 lua-cjson
 pushd lua-cjson
-make && make install
+make && sudo -E make install
 popd
 
 # lua resty lrucache
@@ -128,7 +129,7 @@ wget https://github.com/openresty/lua-resty-lrucache/archive/v0.09.tar.gz
 tar xzvf v0.09.tar.gz && rm v0.09.tar.gz
 mv lua-resty-lrucache-0.09 lua-resty-lrucache
 pushd lua-resty-lrucache
-make && make install
+make && sudo -E make install
 popd
 
 # lua module
