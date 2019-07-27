@@ -24,7 +24,7 @@ install deluge and deluge-webui
 
 use it as follow:
 ```
-curl https://raw.githubusercontent.com/ShadowySpirits/vps-shell/master/deluge_install.sh | bash
+curl https://raw.githubusercontent.com/ShadowySpirits/vps-shell/master/deluge_install.sh | sudo bash
 ```
 
 
