@@ -18,7 +18,17 @@ curl https://raw.githubusercontent.com/ShadowySpirits/vps-shell/master/nginx_ins
 - --with-waf &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: add lua waf
 
 
-## get_gfwlist.sh.sh
+## deluge_install.sh
+
+install deluge and deluge-webui
+
+use it as follow:
+```
+curl https://raw.githubusercontent.com/ShadowySpirits/vps-shell/master/deluge_install.sh | bash
+```
+
+
+## get_gfwlist.sh
 
 download gfw domain list
 
