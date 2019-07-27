@@ -313,6 +313,7 @@ then
 fi
 sudo mkdir /home/wwwroot
 sudo mkdir /etc/nginx/sites-enabled
+sudo mkdir /etc/nginx/conf.d
 sudo mkdir -p /var/lib/nginx/body
 sudo chown -R www-data:www-data /home/wwwlogs
 sudo chown -R www-data:www-data /home/wwwroot
@@ -341,7 +342,7 @@ config_output_html=[[
 EOF
 
 
-sudo tee /etc/nginx/sites-enabled/waf.conf << EOF
+sudo tee /etc/nginx/conf.d/waf.conf << EOF
 lua_load_resty_core off;
 lua_shared_dict limit 20m;
 lua_package_path "/etc/nginx/waf/?.lua";
@@ -366,21 +367,22 @@ events {
 http {
   charset utf-8;
   sendfile on;
-  aio threads;
-  directio 512k;
   tcp_nopush on;
   tcp_nodelay on;
+  aio threads;
+  directio 512k;
   server_tokens off;
   log_not_found off;
   types_hash_max_size 2048;
-  client_max_body_size 0 ;
+  client_max_body_size 0;
+  client_header_buffer_size 4k;
 
   # SSL
   strict_sni                  on;
   strict_sni_header           on;
   ssl_protocols               TLSv1.2 TLSv1.3;
   ssl_ecdh_curve              X25519:P-256:P-384:P-224:P-521;
-  ssl_ciphers                 '[ECDHE-ECDSA-AES128-GCM-SHA256|ECDHE-ECDSA-CHACHA20-POLY1305|ECDHE-RSA-AES128-GCM-SHA256|ECDHE-RSA-CHACHA20-POLY1305]:ECDHE+AES128:RSA+AES128:ECDHE+AES256:RSA+AES256:ECDHE+3DES:RSA+3DES';
+  ssl_ciphers                 ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE+AES128:RSA+AES128:ECDHE+AES256:RSA+AES256:ECDHE+3DES:RSA+3DES;
   ssl_prefer_server_ciphers   on;
   ssl_early_data              on;
   proxy_set_header Early-Data \$ssl_early_data;
@@ -409,6 +411,7 @@ http {
   brotli_comp_level 6;
   brotli_types text/plain text/css text/xml text/javascript application/javascript application/x-javascript application/json application/xml application/rss+xml application/atom+xml image/svg+xml;
 
+  include /etc/nginx/conf.d/*.conf;
   include /etc/nginx/sites-enabled/*;
 }
 EOF
@@ -433,9 +436,8 @@ KillMode=mixed
 WantedBy=multi-user.target
 EOF
 
-sudo chown -R www-data:www-data /etc/nginx
-
 sudo systemctl unmask nginx.service
 sudo systemctl daemon-reload
 sudo systemctl enable nginx
 sudo systemctl start nginx
+sudo systemctl status nginx
