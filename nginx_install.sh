@@ -332,7 +332,7 @@ config_url_args_check = "on"
 config_user_agent_check = "on"
 config_cookie_check = "on"
 config_cc_check = "on"
-config_cc_rate = "60/60" -- count per XX seconds
+config_cc_rate = "180/60" -- count per XX seconds
 config_post_check = "on"
 config_waf_output = "html"
 config_waf_redirect_url = "/captcha" -- only enable when config_waf_output = "redirect"
@@ -343,7 +343,6 @@ EOF
 
 
 sudo tee /etc/nginx/conf.d/waf.conf << EOF
-lua_load_resty_core off;
 lua_shared_dict limit 20m;
 lua_package_path "/etc/nginx/waf/?.lua";
 init_by_lua_file "/etc/nginx/waf/init.lua";
