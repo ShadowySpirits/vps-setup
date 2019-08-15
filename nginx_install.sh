@@ -33,27 +33,27 @@ mkdir ~/nginx
 cd ~/nginx
 
 # Nginx 1.17.1
-wget https://nginx.org/download/nginx-1.17.1.tar.gz
-tar zxf nginx-1.17.1.tar.gz && rm nginx-1.17.1.tar.gz
+wget https://nginx.org/download/nginx-1.17.3.tar.gz
+tar zxf nginx-1.17.3.tar.gz && rm nginx-1.17.3.tar.gz
 
 # SPDY, HTTP2 HPACK, Dynamic TLS Record, Fix Http2 Push Error patch
-pushd nginx-1.17.1
+pushd nginx-1.17.3
 curl https://raw.githubusercontent.com/kn007/patch/master/nginx.patch | patch -p1
 popd
 
 # Strict-SNI patch
-pushd nginx-1.17.1
+pushd nginx-1.17.3
 curl https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/nginx_strict-sni_1.15.10.patch | patch -p1
 popd
 
 # Auto using PRIORITIZE CHACHA patch
-pushd nginx-1.17.1
+pushd nginx-1.17.3
 curl https://raw.githubusercontent.com/kn007/patch/master/nginx_auto_using_PRIORITIZE_CHACHA.patch | patch -p1
 popd
 
 # OpenSSL 1.1.1c
 wget https://www.openssl.org/source/openssl-1.1.1c.tar.gz
-tar zxf openssl-1.1.1c.tar.gz && rm zxf openssl-1.1.1c.tar.gz
+tar zxf openssl-1.1.1c.tar.gz && rm openssl-1.1.1c.tar.gz
 
 # OpenSSL patch
 pushd openssl-1.1.1c
@@ -85,7 +85,7 @@ popd
 
 # pcre
 wget https://ftp.pcre.org/pub/pcre/pcre-8.43.zip
-unzip pcre-8.43.zip && rm pcre-8.43.zip
+unzip -oq pcre-8.43.zip && rm pcre-8.43.zip
 mv pcre-8.43 pcre
 
 # ngx_brotli
@@ -96,7 +96,7 @@ popd
 
 # LuaJit
 wget https://github.com/openresty/luajit2/archive/v2.1-20190626.tar.gz
-tar xzvf v2.1-20190626.tar.gz && rm v2.1-20190626.tar.gz
+tar zxf v2.1-20190626.tar.gz && rm v2.1-20190626.tar.gz
 mv luajit2-2.1-20190626 luajit-2.1
 pushd luajit-2.1
 make && sudo make install
@@ -110,7 +110,7 @@ export LUAJIT_INC=/usr/local/include/luajit-2.1
 
 # lua resty core
 wget https://github.com/openresty/lua-resty-core/archive/v0.1.17.tar.gz
-tar xzvf v0.1.17.tar.gz && rm v0.1.17.tar.gz
+tar zxf v0.1.17.tar.gz && rm v0.1.17.tar.gz
 mv lua-resty-core-0.1.17 lua-resty-core
 pushd lua-resty-core
 make && sudo -E make install
@@ -118,7 +118,7 @@ popd
 
 # lua cjson
 wget https://github.com/openresty/lua-cjson/archive/2.1.0.7.tar.gz
-tar xzvf 2.1.0.7.tar.gz && rm 2.1.0.7.tar.gz
+tar zxf 2.1.0.7.tar.gz && rm 2.1.0.7.tar.gz
 mv lua-cjson-2.1.0.7 lua-cjson
 pushd lua-cjson
 make && sudo -E make install
@@ -126,13 +126,13 @@ popd
 
 # lua resty lrucache
 wget https://github.com/openresty/lua-resty-lrucache/archive/v0.09.tar.gz
-tar xzvf v0.09.tar.gz && rm v0.09.tar.gz
+tar zxf v0.09.tar.gz && rm v0.09.tar.gz
 mv lua-resty-lrucache-0.09 lua-resty-lrucache
 pushd lua-resty-lrucache
 make && sudo -E make install
 popd
 
-sudo cp -r /usr/local/lib/lua/5.1 /usr/local/share/lua/5.1
+sudo cp -r /usr/local/lib/lua/5.1 /usr/local/share/lua
 
 # lua module
 wget https://github.com/openresty/lua-nginx-module/archive/v0.10.15.tar.gz
@@ -183,7 +183,7 @@ wget https://github.com/yaoweibin/ngx_http_substitutions_filter_module/archive/v
 tar zxf v0.6.4.tar.gz && rm v0.6.4.tar.gz
 mv ngx_http_substitutions_filter_module-0.6.4 ngx_http_substitutions_filter_module
 
-cd nginx-1.17.1
+cd nginx-1.17.3
 
 sed -i 's@CFLAGS="$CFLAGS -g"@#CFLAGS="$CFLAGS -g"@' auto/cc/gcc
 
