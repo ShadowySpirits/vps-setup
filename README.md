@@ -1,14 +1,14 @@
-# vps shell
+# vps setup
 
 Useful scripts for vps management
 
 ## nginx_install.sh
 
-install nginx 1.17.1 with TLS1.3 and Strict-SNI support
+install nginx 1.17 with TLS1.3 and Strict-SNI support
 
 use it as follow:
 ```
-curl https://raw.githubusercontent.com/ShadowySpirits/vps-shell/master/nginx_install.sh | bash
+curl https://raw.githubusercontent.com/ShadowySpirits/vps-setup/master/nginx_install.sh | bash
 ```
 
 
@@ -24,7 +24,7 @@ install deluge and deluge-webui
 
 use it as follow:
 ```
-curl https://raw.githubusercontent.com/ShadowySpirits/vps-shell/master/deluge_install.sh | sudo bash
+curl https://raw.githubusercontent.com/ShadowySpirits/vps-setup/master/deluge_install.sh | sudo bash
 ```
 
 
@@ -34,5 +34,5 @@ download gfw domain list
 
 use it as follow:
 ```
-curl https://raw.githubusercontent.com/ShadowySpirits/vps-shell/master/get_gfwlist.sh | bash
+curl https://raw.githubusercontent.com/ShadowySpirits/vps-setup/master/get_gfwlist.sh | bash
 ```
