@@ -32,7 +32,7 @@ sudo apt install -y build-essential autoconf automake libatomic-ops-dev libgeoip
 mkdir ~/nginx
 cd ~/nginx
 
-# Nginx 1.17.1
+# Nginx 1.17.3
 wget https://nginx.org/download/nginx-1.17.3.tar.gz
 tar zxf nginx-1.17.3.tar.gz && rm nginx-1.17.3.tar.gz
 
@@ -131,8 +131,6 @@ mv lua-resty-lrucache-0.09 lua-resty-lrucache
 pushd lua-resty-lrucache
 make && sudo -E make install
 popd
-
-sudo cp -r /usr/local/lib/lua/5.1 /usr/local/share/lua
 
 # lua module
 wget https://github.com/openresty/lua-nginx-module/archive/v0.10.15.tar.gz
@@ -344,7 +342,7 @@ EOF
 
 sudo tee /etc/nginx/conf.d/waf.conf << EOF
 lua_shared_dict limit 20m;
-lua_package_path "/etc/nginx/waf/?.lua";
+lua_package_path "/usr/local/lib/lua/5.1/?.lua;/etc/nginx/waf/?.lua";
 init_by_lua_file "/etc/nginx/waf/init.lua";
 access_by_lua_file "/etc/nginx/waf/access.lua";
 EOF
