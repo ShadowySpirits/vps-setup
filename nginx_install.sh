@@ -305,9 +305,9 @@ then
   sudo git clone https://github.com/xzhih/ngx_lua_waf.git waf 
   sudo mkdir -p /home/wwwlogs/waf
 fi
-sudo mkdir /home/wwwroot
-sudo mkdir /etc/nginx/sites-enabled
-sudo mkdir /etc/nginx/conf.d
+sudo mkdir -p /home/wwwroot
+sudo mkdir -p /etc/nginx/sites-enabled
+sudo mkdir -p /etc/nginx/conf.d
 sudo mkdir -p /var/lib/nginx/body
 sudo chown -R www-data:www-data /home/wwwlogs
 sudo chown -R www-data:www-data /home/wwwroot
@@ -384,10 +384,10 @@ http {
   strict_sni_header           on;
   ssl_protocols               TLSv1.2 TLSv1.3;
   ssl_ecdh_curve              X25519:P-256:P-384:P-224:P-521;
-  ssl_ciphers                 '[ECDHE-ECDSA-AES128-GCM-SHA256|ECDHE-ECDSA-CHACHA20-POLY1305|ECDHE-RSA-AES128-GCM-SHA256|ECDHE-RSA-CHACHA20-POLY1305]:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384';
+  ssl_ciphers                 [TLS_AES_256_GCM_SHA384|TLS_AES_128_GCM_SHA256|TLS_CHACHA20_POLY1305_SHA256]:[ECDHE-ECDSA-AES128-GCM-SHA256|ECDHE-ECDSA-CHACHA20-POLY1305|ECDHE-RSA-AES128-GCM-SHA256|ECDHE-RSA-CHACHA20-POLY1305]:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
   ssl_prefer_server_ciphers   on;
   ssl_early_data              on;
-  proxy_set_header            Early-Data $ssl_early_data;
+  proxy_set_header            Early-Data \$ssl_early_data;
 
   # MIME
   include mime.types;
