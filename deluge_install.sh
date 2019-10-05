@@ -1,8 +1,10 @@
+#!/usr/bin/env bash
 if [ $(id -u) != "0" ]; then
     echo "Error: You must be root to run this script, please use root to install deluge"
     exit 1
 fi
 
+set -euo pipefail
 apt install -y software-properties-common
 add-apt-repository -y ppa:deluge-team/stable
 apt update

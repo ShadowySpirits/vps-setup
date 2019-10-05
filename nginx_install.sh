@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 vod=false
 mkv=false
 waf=false
@@ -25,7 +26,7 @@ while true; do
     esac
 done
 
-
+set -euo pipefail
 sudo apt update
 sudo apt install -y build-essential autoconf automake libatomic-ops-dev libgeoip-dev libbrotli-dev curl git unzip
 
@@ -95,7 +96,7 @@ tar zxf v2.1-20190626.tar.gz && rm v2.1-20190626.tar.gz
 mv luajit2-2.1-20190626 luajit-2.1
 pushd luajit-2.1
 make && sudo make install
-ldconfig
+sudo ldconfig
 popd
 
 export LUA_INCLUDE_DIR=/usr/local/include/luajit-2.1
