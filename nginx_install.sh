@@ -29,39 +29,34 @@ done
 sudo apt update
 sudo apt install -y build-essential autoconf automake libatomic-ops-dev libgeoip-dev libbrotli-dev curl git unzip
 
-mkdir ~/nginx
-cd ~/nginx
+mkdir ~/nginx-src
+cd ~/nginx-src
 
-# Nginx 1.17.3
-wget https://nginx.org/download/nginx-1.17.3.tar.gz
-tar zxf nginx-1.17.3.tar.gz && rm nginx-1.17.3.tar.gz
+# Nginx 1.17.4
+wget https://nginx.org/download/nginx-1.17.4.tar.gz
+tar zxf nginx-1.17.4.tar.gz && rm nginx-1.17.4.tar.gz
 
-# SPDY, HTTP2 HPACK, Dynamic TLS Record, Fix Http2 Push Error patch
-pushd nginx-1.17.3
+# SPDY, FULL HPACK, Dynamic TLS Record patch
+pushd nginx-1.17.4
 curl https://raw.githubusercontent.com/kn007/patch/master/nginx.patch | patch -p1
 popd
 
 # Strict-SNI patch
-pushd nginx-1.17.3
+pushd nginx-1.17.4
 curl https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/nginx_strict-sni_1.15.10.patch | patch -p1
 popd
 
-# Auto using PRIORITIZE CHACHA patch
-pushd nginx-1.17.3
-curl https://raw.githubusercontent.com/kn007/patch/master/nginx_auto_using_PRIORITIZE_CHACHA.patch | patch -p1
-popd
-
-# OpenSSL 1.1.1c
-wget https://www.openssl.org/source/openssl-1.1.1c.tar.gz
-tar zxf openssl-1.1.1c.tar.gz && rm openssl-1.1.1c.tar.gz
+# OpenSSL 1.1.1d
+wget https://www.openssl.org/source/openssl-1.1.1d.tar.gz
+tar zxf openssl-1.1.1d.tar.gz && rm openssl-1.1.1d.tar.gz
 
 # OpenSSL patch
-pushd openssl-1.1.1c
-curl https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/openssl-1.1.1c-chacha_draft.patch | patch -p1
+pushd openssl-1.1.1d
+curl https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/openssl-1.1.1d-chacha_draft.patch | patch -p1
 popd
 
-pushd openssl-1.1.1c
-curl https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/openssl-1.1.1c-prioritize_chacha_draft.patch | patch -p1
+pushd openssl-1.1.1d
+curl https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/openssl-equal-1.1.1d_ciphers.patch | patch -p1
 popd
 
 # jemalloc
@@ -181,7 +176,7 @@ wget https://github.com/yaoweibin/ngx_http_substitutions_filter_module/archive/v
 tar zxf v0.6.4.tar.gz && rm v0.6.4.tar.gz
 mv ngx_http_substitutions_filter_module-0.6.4 ngx_http_substitutions_filter_module
 
-cd nginx-1.17.3
+cd nginx-1.17.4
 
 sed -i 's@CFLAGS="$CFLAGS -g"@#CFLAGS="$CFLAGS -g"@' auto/cc/gcc
 
@@ -233,7 +228,7 @@ then
 --with-pcre=../pcre \
 --with-zlib=../zlib \
 --with-libatomic \
---with-openssl=../openssl-1.1.1c \
+--with-openssl=../openssl-1.1.1d \
 --with-openssl-opt='zlib -march=native -ljemalloc -Wl,-flto' \
 --add-module=../ngx_brotli \
 --add-module=../ngx_devel_kit \
@@ -289,7 +284,7 @@ else
 --with-pcre=../pcre \
 --with-zlib=../zlib \
 --with-libatomic \
---with-openssl=../openssl-1.1.1c \
+--with-openssl=../openssl-1.1.1d \
 --with-openssl-opt='zlib -march=native -ljemalloc -Wl,-flto' \
 --add-module=../ngx_brotli \
 --add-module=../ngx_devel_kit \
