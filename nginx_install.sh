@@ -371,14 +371,23 @@ http {
   client_header_buffer_size 4k;
 
   # SSL
+  ssl_session_cache           shared:SSL:30m;
+  ssl_session_timeout         1d;
+  ssl_session_tickets         off;
+
+  ssl_stapling on;
+  ssl_stapling_verify on;
+  resolver 1.1.1.1 1.0.0.1 8.8.8.8 8.8.4.4 208.67.222.222 208.67.220.220 valid=60s;
+  resolver_timeout 2s;
+
   strict_sni                  on;
   strict_sni_header           on;
   ssl_protocols               TLSv1.2 TLSv1.3;
   ssl_ecdh_curve              X25519:P-256:P-384:P-224:P-521;
-  ssl_ciphers                 ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE+AES128:RSA+AES128:ECDHE+AES256:RSA+AES256:ECDHE+3DES:RSA+3DES;
+  ssl_ciphers                 '[ECDHE-ECDSA-AES128-GCM-SHA256|ECDHE-ECDSA-CHACHA20-POLY1305|ECDHE-RSA-AES128-GCM-SHA256|ECDHE-RSA-CHACHA20-POLY1305]:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384';
   ssl_prefer_server_ciphers   on;
   ssl_early_data              on;
-  proxy_set_header Early-Data \$ssl_early_data;
+  proxy_set_header            Early-Data $ssl_early_data;
 
   # MIME
   include mime.types;
