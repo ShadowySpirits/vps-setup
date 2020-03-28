@@ -33,17 +33,17 @@ sudo apt install -y build-essential autoconf automake libatomic-ops-dev libgeoip
 mkdir ~/nginx-src
 cd ~/nginx-src
 
-# Nginx 1.17.4
-wget https://nginx.org/download/nginx-1.17.4.tar.gz
-tar zxf nginx-1.17.4.tar.gz && rm nginx-1.17.4.tar.gz
+# Nginx 1.17.9
+wget https://nginx.org/download/nginx-1.17.9.tar.gz
+tar zxf nginx-1.17.9.tar.gz && rm nginx-1.17.9.tar.gz
 
-# SPDY, FULL HPACK, Dynamic TLS Record patch
-pushd nginx-1.17.4
+# FULL HPACK, Dynamic TLS Record patch
+pushd nginx-1.17.9
 curl https://raw.githubusercontent.com/kn007/patch/master/nginx.patch | patch -p1
 popd
 
 # Strict-SNI patch
-pushd nginx-1.17.4
+pushd nginx-1.17.9
 curl https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/nginx_strict-sni_1.15.10.patch | patch -p1
 popd
 
@@ -177,7 +177,7 @@ wget https://github.com/yaoweibin/ngx_http_substitutions_filter_module/archive/v
 tar zxf v0.6.4.tar.gz && rm v0.6.4.tar.gz
 mv ngx_http_substitutions_filter_module-0.6.4 ngx_http_substitutions_filter_module
 
-cd nginx-1.17.4
+cd nginx-1.17.9
 
 sed -i 's@CFLAGS="$CFLAGS -g"@#CFLAGS="$CFLAGS -g"@' auto/cc/gcc
 
@@ -225,7 +225,6 @@ then
 --with-stream_ssl_preread_module \
 --with-stream_realip_module \
 --with-http_v2_hpack_enc \
---with-http_spdy_module \
 --with-pcre=../pcre \
 --with-zlib=../zlib \
 --with-libatomic \
