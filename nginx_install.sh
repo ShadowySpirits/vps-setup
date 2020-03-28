@@ -280,7 +280,6 @@ else
 --with-stream_ssl_preread_module \
 --with-stream_realip_module \
 --with-http_v2_hpack_enc \
---with-http_spdy_module \
 --with-pcre=../pcre \
 --with-zlib=../zlib \
 --with-libatomic \
