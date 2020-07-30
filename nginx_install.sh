@@ -33,18 +33,23 @@ sudo apt install -y build-essential autoconf automake libatomic-ops-dev libgeoip
 mkdir ~/nginx-src
 cd ~/nginx-src
 
-# Nginx 1.17.9
-wget https://nginx.org/download/nginx-1.17.9.tar.gz
-tar zxf nginx-1.17.9.tar.gz && rm nginx-1.17.9.tar.gz
+# Nginx 1.19.1
+wget https://nginx.org/download/nginx-1.19.1.tar.gz
+tar zxf nginx-1.19.1.tar.gz && rm nginx-1.19.1.tar.gz
 
 # FULL HPACK, Dynamic TLS Record patch
-pushd nginx-1.17.9
+pushd nginx-1.19.1
 curl https://raw.githubusercontent.com/kn007/patch/master/nginx.patch | patch -p1
 popd
 
 # Strict-SNI patch
-pushd nginx-1.17.9
+pushd nginx-1.19.1
 curl https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/nginx_strict-sni_1.15.10.patch | patch -p1
+popd
+
+# io_uring patch
+pushd nginx-1.19.1
+curl https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/nginx_io_uring.patch | patch -p1
 popd
 
 # OpenSSL 1.1.1d
@@ -72,6 +77,12 @@ echo '/usr/local/lib' | sudo tee /etc/ld.so.conf.d/local.conf
 sudo ldconfig
 popd
 
+# io_uring lib
+git clone https://github.com/axboe/liburing.git
+pushd liburing
+make && sudo make install
+popd
+
 # zlib Cloudflare ver
 git clone -b master https://github.com/cloudflare/zlib.git
 pushd zlib
@@ -80,12 +91,12 @@ make && sudo make install
 popd
 
 # pcre
-wget https://ftp.pcre.org/pub/pcre/pcre-8.43.zip
-unzip -oq pcre-8.43.zip && rm pcre-8.43.zip
-mv pcre-8.43 pcre
+wget https://ftp.pcre.org/pub/pcre/pcre-8.44.zip
+unzip -oq pcre-8.44.zip && rm pcre-8.44.zip
+mv pcre-8.44 pcre
 
 # ngx_brotli
-git clone https://github.com/eustas/ngx_brotli.git
+git clone https://github.com/google/ngx_brotli.git
 pushd ngx_brotli
 git submodule update --init
 popd
@@ -177,7 +188,7 @@ wget https://github.com/yaoweibin/ngx_http_substitutions_filter_module/archive/v
 tar zxf v0.6.4.tar.gz && rm v0.6.4.tar.gz
 mv ngx_http_substitutions_filter_module-0.6.4 ngx_http_substitutions_filter_module
 
-cd nginx-1.17.9
+cd nginx-1.19.1
 
 sed -i 's@CFLAGS="$CFLAGS -g"@#CFLAGS="$CFLAGS -g"@' auto/cc/gcc
 
@@ -357,11 +368,10 @@ events {
 
 http {
   charset utf-8;
-  sendfile on;
+  sendfile off;
   tcp_nopush on;
   tcp_nodelay on;
-  aio threads;
-  directio 512k;
+  aio on;
   server_tokens off;
   log_not_found off;
   types_hash_max_size 2048;
