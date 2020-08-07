@@ -2,33 +2,43 @@
 vod=false
 mkv=false
 waf=false
+io_uring=false
+service=true
 
-ARGS=`getopt -o "ao:" -l "with-vod,enable-mkv,with-waf" -n "nginx_install.sh" -- "$@"`
+ARGS=`getopt -o "ao:" -l "with-vod,enable-mkv,with-waf,enable-iouring,no-service" -n "nginx_install.sh" -- "$@"`
 eval set -- "${ARGS}"
 while true; do
-    case "${1}" in
-        --with-vod)
-        shift;
-        vod=true
-        ;;
-        --enable-mkv)
-        shift;
-        mkv=true
-        ;;
-        --with-waf)
-        shift;
-        waf=true
-        ;;
-        --)
-        shift;
-        break;
-        ;;
-    esac
+  case "${1}" in
+    --with-vod)
+    shift;
+    vod=true
+    ;;
+    --enable-mkv)
+    shift;
+    mkv=true
+    ;;
+    --with-waf)
+    shift;
+    waf=true
+    ;;
+    --enable-iouring)
+    shift;
+    io_uring=true
+    ;;
+    --no-service)
+    shift;
+    service=false
+    ;;
+    --)
+    shift;
+    break;
+    ;;
+  esac
 done
 
 set -euo pipefail
-sudo apt update
-sudo apt install -y build-essential autoconf automake libatomic-ops-dev libgeoip-dev libbrotli-dev curl git unzip
+apt update
+apt install -y build-essential autoconf automake libatomic-ops-dev libgeoip-dev libbrotli-dev curl git unzip wget
 
 mkdir ~/nginx-src
 cd ~/nginx-src
@@ -47,10 +57,13 @@ pushd nginx-1.19.1
 curl https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/nginx_strict-sni_1.15.10.patch | patch -p1
 popd
 
-# io_uring patch
-pushd nginx-1.19.1
-curl https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/nginx_io_uring.patch | patch -p1
-popd
+if $io_uring
+then
+  # io_uring patch
+  pushd nginx-1.19.1
+  curl https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/nginx_io_uring.patch | patch -p1
+  popd
+fi
 
 # OpenSSL 1.1.1d
 wget https://www.openssl.org/source/openssl-1.1.1d.tar.gz
@@ -72,22 +85,25 @@ pushd jemalloc
 make -j$(nproc --all)
 touch doc/jemalloc.html
 touch doc/jemalloc.3
-sudo make install
-echo '/usr/local/lib' | sudo tee /etc/ld.so.conf.d/local.conf
-sudo ldconfig
+make install
+echo '/usr/local/lib' | tee /etc/ld.so.conf.d/local.conf
+ldconfig
 popd
 
-# io_uring lib
-git clone https://github.com/axboe/liburing.git
-pushd liburing
-make && sudo make install
-popd
+if $io_uring
+then
+  # io_uring lib
+  git clone https://github.com/axboe/liburing.git
+  pushd liburing
+  make && make install
+  popd
+fi
 
 # zlib Cloudflare ver
 git clone -b master https://github.com/cloudflare/zlib.git
 pushd zlib
 ./configure
-make && sudo make install
+make && make install
 popd
 
 # pcre
@@ -106,8 +122,8 @@ wget https://github.com/openresty/luajit2/archive/v2.1-20190626.tar.gz
 tar zxf v2.1-20190626.tar.gz && rm v2.1-20190626.tar.gz
 mv luajit2-2.1-20190626 luajit-2.1
 pushd luajit-2.1
-make && sudo make install
-sudo ldconfig
+make && make install
+ldconfig
 popd
 
 export LUA_INCLUDE_DIR=/usr/local/include/luajit-2.1
@@ -120,7 +136,7 @@ wget https://github.com/openresty/lua-resty-core/archive/v0.1.17.tar.gz
 tar zxf v0.1.17.tar.gz && rm v0.1.17.tar.gz
 mv lua-resty-core-0.1.17 lua-resty-core
 pushd lua-resty-core
-make && sudo -E make install
+make && make install
 popd
 
 # lua cjson
@@ -128,7 +144,7 @@ wget https://github.com/openresty/lua-cjson/archive/2.1.0.7.tar.gz
 tar zxf 2.1.0.7.tar.gz && rm 2.1.0.7.tar.gz
 mv lua-cjson-2.1.0.7 lua-cjson
 pushd lua-cjson
-make && sudo -E make install
+make && make install
 popd
 
 # lua resty lrucache
@@ -136,7 +152,7 @@ wget https://github.com/openresty/lua-resty-lrucache/archive/v0.09.tar.gz
 tar zxf v0.09.tar.gz && rm v0.09.tar.gz
 mv lua-resty-lrucache-0.09 lua-resty-lrucache
 pushd lua-resty-lrucache
-make && sudo -E make install
+make && make install
 popd
 
 # lua module
@@ -169,8 +185,8 @@ tar zxf libmaxminddb-1.3.2.tar.gz && rm libmaxminddb-1.3.2.tar.gz
 mv libmaxminddb-1.3.2 libmaxminddb
 pushd libmaxminddb
 ./configure
-make && sudo make install
-sudo ldconfig
+make && make install
+ldconfig
 popd
 
 # ngx_http_geoip2_module
@@ -194,136 +210,136 @@ sed -i 's@CFLAGS="$CFLAGS -g"@#CFLAGS="$CFLAGS -g"@' auto/cc/gcc
 
 if $vod
 then
-./configure \
---with-cc-opt='-g -O3 -m64 -march=native -ffast-math -DTCP_FASTOPEN=23 -fPIE -fstack-protector-strong -flto -fuse-ld=gold --param=ssp-buffer-size=4 -Wformat -Werror=format-security -Wno-unused-parameter -fno-strict-aliasing -fPIC -D_FORTIFY_SOURCE=2 -gsplit-dwarf' \
---with-ld-opt='-lrt -L /usr/local/lib -ljemalloc -Wl,-Bsymbolic-functions -fPIE -pie -Wl,-z,relro -Wl,-z,now -fPIC' \
---user=www-data \
---group=www-data \
---sbin-path=/usr/sbin/nginx \
---conf-path=/etc/nginx/nginx.conf \
---http-log-path=/home/wwwlogs/access.log \
---error-log-path=/home/wwwlogs/error.log \
---lock-path=/var/lock/nginx.lock \
---pid-path=/run/nginx.pid \
---modules-path=/usr/lib/nginx/modules \
---http-client-body-temp-path=/var/lib/nginx/body \
---http-fastcgi-temp-path=/var/lib/nginx/fastcgi \
---http-proxy-temp-path=/var/lib/nginx/proxy \
---http-scgi-temp-path=/var/lib/nginx/scgi \
---http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
---with-threads \
---with-file-aio \
---with-pcre-jit \
---with-http_v2_module \
---with-http_ssl_module \
---with-http_sub_module \
---with-http_dav_module \
---with-http_flv_module \
---with-http_mp4_module \
---with-http_slice_module \
---with-http_geoip_module \
---with-http_gunzip_module \
---with-http_realip_module \
---with-http_addition_module \
---with-http_gzip_static_module \
---with-http_degradation_module \
---with-http_secure_link_module \
---with-http_stub_status_module \
---with-http_random_index_module \
---with-http_auth_request_module \
---with-stream \
---with-stream_ssl_module \
---with-stream_ssl_preread_module \
---with-stream_realip_module \
---with-http_v2_hpack_enc \
---with-pcre=../pcre \
---with-zlib=../zlib \
---with-libatomic \
---with-openssl=../openssl-1.1.1d \
---with-openssl-opt='zlib -march=native -ljemalloc -Wl,-flto' \
---add-module=../ngx_brotli \
---add-module=../ngx_devel_kit \
---add-module=../lua-nginx-module \
---add-module=../ngx_http_geoip2_module \
---add-module=../nginx-sorted-querystring-module \
---add-module=../ngx_http_substitutions_filter_module \
---add-module=../nginx-vod-module
+  ./configure \
+  --with-cc-opt='-g -O3 -m64 -march=native -ffast-math -DTCP_FASTOPEN=23 -fPIE -fstack-protector-strong -flto -fuse-ld=gold --param=ssp-buffer-size=4 -Wformat -Werror=format-security -Wno-unused-parameter -fno-strict-aliasing -fPIC -D_FORTIFY_SOURCE=2 -gsplit-dwarf' \
+  --with-ld-opt='-lrt -L /usr/local/lib -ljemalloc -Wl,-Bsymbolic-functions -fPIE -pie -Wl,-z,relro -Wl,-z,now -fPIC' \
+  --user=www-data \
+  --group=www-data \
+  --sbin-path=/usr/sbin/nginx \
+  --conf-path=/etc/nginx/nginx.conf \
+  --http-log-path=/home/wwwlogs/access.log \
+  --error-log-path=/home/wwwlogs/error.log \
+  --lock-path=/var/lock/nginx.lock \
+  --pid-path=/run/nginx.pid \
+  --modules-path=/usr/lib/nginx/modules \
+  --http-client-body-temp-path=/var/lib/nginx/body \
+  --http-fastcgi-temp-path=/var/lib/nginx/fastcgi \
+  --http-proxy-temp-path=/var/lib/nginx/proxy \
+  --http-scgi-temp-path=/var/lib/nginx/scgi \
+  --http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
+  --with-threads \
+  --with-file-aio \
+  --with-pcre-jit \
+  --with-http_v2_module \
+  --with-http_ssl_module \
+  --with-http_sub_module \
+  --with-http_dav_module \
+  --with-http_flv_module \
+  --with-http_mp4_module \
+  --with-http_slice_module \
+  --with-http_geoip_module \
+  --with-http_gunzip_module \
+  --with-http_realip_module \
+  --with-http_addition_module \
+  --with-http_gzip_static_module \
+  --with-http_degradation_module \
+  --with-http_secure_link_module \
+  --with-http_stub_status_module \
+  --with-http_random_index_module \
+  --with-http_auth_request_module \
+  --with-stream \
+  --with-stream_ssl_module \
+  --with-stream_ssl_preread_module \
+  --with-stream_realip_module \
+  --with-http_v2_hpack_enc \
+  --with-pcre=../pcre \
+  --with-zlib=../zlib \
+  --with-libatomic \
+  --with-openssl=../openssl-1.1.1d \
+  --with-openssl-opt='zlib -march=native -ljemalloc -Wl,-flto' \
+  --add-module=../ngx_brotli \
+  --add-module=../ngx_devel_kit \
+  --add-module=../lua-nginx-module \
+  --add-module=../ngx_http_geoip2_module \
+  --add-module=../nginx-sorted-querystring-module \
+  --add-module=../ngx_http_substitutions_filter_module \
+  --add-module=../nginx-vod-module
 else
-./configure \
---with-cc-opt='-g -O3 -m64 -march=native -ffast-math -DTCP_FASTOPEN=23 -fPIE -fstack-protector-strong -flto -fuse-ld=gold --param=ssp-buffer-size=4 -Wformat -Werror=format-security -Wno-unused-parameter -fno-strict-aliasing -fPIC -D_FORTIFY_SOURCE=2 -gsplit-dwarf' \
---with-ld-opt='-lrt -L /usr/local/lib -ljemalloc -Wl,-Bsymbolic-functions -fPIE -pie -Wl,-z,relro -Wl,-z,now -fPIC' \
---user=www-data \
---group=www-data \
---sbin-path=/usr/sbin/nginx \
---conf-path=/etc/nginx/nginx.conf \
---http-log-path=/home/wwwlogs/access.log \
---error-log-path=/home/wwwlogs/error.log \
---lock-path=/var/lock/nginx.lock \
---pid-path=/run/nginx.pid \
---modules-path=/usr/lib/nginx/modules \
---http-client-body-temp-path=/var/lib/nginx/body \
---http-fastcgi-temp-path=/var/lib/nginx/fastcgi \
---http-proxy-temp-path=/var/lib/nginx/proxy \
---http-scgi-temp-path=/var/lib/nginx/scgi \
---http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
---with-threads \
---with-file-aio \
---with-pcre-jit \
---with-http_v2_module \
---with-http_ssl_module \
---with-http_sub_module \
---with-http_dav_module \
---with-http_flv_module \
---with-http_mp4_module \
---with-http_slice_module \
---with-http_geoip_module \
---with-http_gunzip_module \
---with-http_realip_module \
---with-http_addition_module \
---with-http_gzip_static_module \
---with-http_degradation_module \
---with-http_secure_link_module \
---with-http_stub_status_module \
---with-http_random_index_module \
---with-http_auth_request_module \
---with-stream \
---with-stream_ssl_module \
---with-stream_ssl_preread_module \
---with-stream_realip_module \
---with-http_v2_hpack_enc \
---with-pcre=../pcre \
---with-zlib=../zlib \
---with-libatomic \
---with-openssl=../openssl-1.1.1d \
---with-openssl-opt='zlib -march=native -ljemalloc -Wl,-flto' \
---add-module=../ngx_brotli \
---add-module=../ngx_devel_kit \
---add-module=../lua-nginx-module \
---add-module=../ngx_http_geoip2_module \
---add-module=../nginx-sorted-querystring-module \
---add-module=../ngx_http_substitutions_filter_module
+  ./configure \
+  --with-cc-opt='-g -O3 -m64 -march=native -ffast-math -DTCP_FASTOPEN=23 -fPIE -fstack-protector-strong -flto -fuse-ld=gold --param=ssp-buffer-size=4 -Wformat -Werror=format-security -Wno-unused-parameter -fno-strict-aliasing -fPIC -D_FORTIFY_SOURCE=2 -gsplit-dwarf' \
+  --with-ld-opt='-lrt -L /usr/local/lib -ljemalloc -Wl,-Bsymbolic-functions -fPIE -pie -Wl,-z,relro -Wl,-z,now -fPIC' \
+  --user=www-data \
+  --group=www-data \
+  --sbin-path=/usr/sbin/nginx \
+  --conf-path=/etc/nginx/nginx.conf \
+  --http-log-path=/home/wwwlogs/access.log \
+  --error-log-path=/home/wwwlogs/error.log \
+  --lock-path=/var/lock/nginx.lock \
+  --pid-path=/run/nginx.pid \
+  --modules-path=/usr/lib/nginx/modules \
+  --http-client-body-temp-path=/var/lib/nginx/body \
+  --http-fastcgi-temp-path=/var/lib/nginx/fastcgi \
+  --http-proxy-temp-path=/var/lib/nginx/proxy \
+  --http-scgi-temp-path=/var/lib/nginx/scgi \
+  --http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
+  --with-threads \
+  --with-file-aio \
+  --with-pcre-jit \
+  --with-http_v2_module \
+  --with-http_ssl_module \
+  --with-http_sub_module \
+  --with-http_dav_module \
+  --with-http_flv_module \
+  --with-http_mp4_module \
+  --with-http_slice_module \
+  --with-http_geoip_module \
+  --with-http_gunzip_module \
+  --with-http_realip_module \
+  --with-http_addition_module \
+  --with-http_gzip_static_module \
+  --with-http_degradation_module \
+  --with-http_secure_link_module \
+  --with-http_stub_status_module \
+  --with-http_random_index_module \
+  --with-http_auth_request_module \
+  --with-stream \
+  --with-stream_ssl_module \
+  --with-stream_ssl_preread_module \
+  --with-stream_realip_module \
+  --with-http_v2_hpack_enc \
+  --with-pcre=../pcre \
+  --with-zlib=../zlib \
+  --with-libatomic \
+  --with-openssl=../openssl-1.1.1d \
+  --with-openssl-opt='zlib -march=native -ljemalloc -Wl,-flto' \
+  --add-module=../ngx_brotli \
+  --add-module=../ngx_devel_kit \
+  --add-module=../lua-nginx-module \
+  --add-module=../ngx_http_geoip2_module \
+  --add-module=../nginx-sorted-querystring-module \
+  --add-module=../ngx_http_substitutions_filter_module
 fi
 
 make -j$(nproc --all)
-sudo make install
+make install
 
 # ngx_lua_waf
 cd /etc/nginx
 if $waf
 then
-  sudo git clone https://github.com/xzhih/ngx_lua_waf.git waf 
-  sudo mkdir -p /home/wwwlogs/waf
+  git clone https://github.com/xzhih/ngx_lua_waf.git waf 
+  mkdir -p /home/wwwlogs/waf
 fi
-sudo mkdir -p /home/wwwroot
-sudo mkdir -p /etc/nginx/sites-enabled
-sudo mkdir -p /etc/nginx/conf.d
-sudo mkdir -p /var/lib/nginx/body
-sudo chown -R www-data:www-data /home/wwwlogs
-sudo chown -R www-data:www-data /home/wwwroot
+mkdir -p /home/wwwroot
+mkdir -p /etc/nginx/sites-enabled
+mkdir -p /etc/nginx/conf.d
+mkdir -p /var/lib/nginx/body
+chown -R www-data:www-data /home/wwwlogs
+chown -R www-data:www-data /home/wwwroot
 
 if $waf
 then
-sudo tee /etc/nginx/waf/config.lua << EOF
+  tee /etc/nginx/waf/config.lua << EOF
 config_waf_enable = "on"
 config_log_dir = "/home/wwwlogs/waf"
 config_rule_dir = "/etc/nginx/waf/wafconf"
@@ -335,7 +351,7 @@ config_url_args_check = "on"
 config_user_agent_check = "on"
 config_cookie_check = "on"
 config_cc_check = "on"
-config_cc_rate = "180/60" -- count per XX seconds
+config_cc_rate = "180/30" -- count per XX seconds
 config_post_check = "on"
 config_waf_output = "html"
 config_waf_redirect_url = "/captcha" -- only enable when config_waf_output = "redirect"
@@ -345,7 +361,7 @@ config_output_html=[[
 EOF
 
 
-sudo tee /etc/nginx/conf.d/waf.conf << EOF
+  tee /etc/nginx/conf.d/waf.conf << EOF
 lua_shared_dict limit 20m;
 lua_package_path "/usr/local/lib/lua/5.1/?.lua;/etc/nginx/waf/?.lua";
 init_by_lua_file "/etc/nginx/waf/init.lua";
@@ -354,7 +370,7 @@ EOF
 fi
 
 # nginx conf
-sudo tee /etc/nginx/nginx.conf << EOF
+tee /etc/nginx/nginx.conf << EOF
 user www-data www-data;
 pid /run/nginx.pid;
 worker_processes auto;
@@ -426,8 +442,10 @@ http {
 }
 EOF
 
-# nginx service
-sudo tee /lib/systemd/system/nginx.service <<EOF
+if $service
+then
+  # nginx service
+  tee /lib/systemd/system/nginx.service <<EOF
 [Unit]
 Description=A high performance web server and a reverse proxy server
 After=network.target
@@ -446,8 +464,9 @@ KillMode=mixed
 WantedBy=multi-user.target
 EOF
 
-sudo systemctl unmask nginx.service
-sudo systemctl daemon-reload
-sudo systemctl enable nginx
-sudo systemctl start nginx
-sudo systemctl status nginx
+  systemctl unmask nginx.service
+  systemctl daemon-reload
+  systemctl enable nginx
+  systemctl start nginx
+  systemctl status nginx
+fi
