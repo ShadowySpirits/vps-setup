@@ -36,31 +36,26 @@ while true; do
   esac
 done
 
-set -euo pipefail
+set -euov pipefail
 apt update
 apt install -y build-essential autoconf automake libatomic-ops-dev libgeoip-dev libbrotli-dev curl git unzip wget
 
 mkdir ~/nginx-src
 cd ~/nginx-src
 
-# Nginx 1.19.1
-wget https://nginx.org/download/nginx-1.19.1.tar.gz
-tar zxf nginx-1.19.1.tar.gz && rm nginx-1.19.1.tar.gz
+# Nginx 1.19.7
+wget https://nginx.org/download/nginx-1.19.7.tar.gz
+tar zxf nginx-1.19.7.tar.gz && rm nginx-1.19.7.tar.gz
 
 # FULL HPACK, Dynamic TLS Record patch
-pushd nginx-1.19.1
+pushd nginx-1.19.7
 curl https://raw.githubusercontent.com/kn007/patch/master/nginx.patch | patch -p1
-popd
-
-# Strict-SNI patch
-pushd nginx-1.19.1
-curl https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/nginx_strict-sni_1.15.10.patch | patch -p1
 popd
 
 if $io_uring
 then
   # io_uring patch
-  pushd nginx-1.19.1
+  pushd nginx-1.19.7
   curl https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/nginx_io_uring.patch | patch -p1
   popd
 fi
@@ -204,7 +199,7 @@ wget https://github.com/yaoweibin/ngx_http_substitutions_filter_module/archive/v
 tar zxf v0.6.4.tar.gz && rm v0.6.4.tar.gz
 mv ngx_http_substitutions_filter_module-0.6.4 ngx_http_substitutions_filter_module
 
-cd nginx-1.19.1
+cd nginx-1.19.7
 
 sed -i 's@CFLAGS="$CFLAGS -g"@#CFLAGS="$CFLAGS -g"@' auto/cc/gcc
 
@@ -404,8 +399,7 @@ http {
   resolver 1.1.1.1 1.0.0.1 8.8.8.8 8.8.4.4 208.67.222.222 208.67.220.220 valid=60s;
   resolver_timeout 2s;
 
-  strict_sni                  on;
-  strict_sni_header           on;
+  ssl_reject_handshake        on;
   ssl_protocols               TLSv1.2 TLSv1.3;
   ssl_ecdh_curve              X25519:P-256:P-384:P-224:P-521;
   ssl_ciphers                 [TLS_AES_256_GCM_SHA384|TLS_AES_128_GCM_SHA256|TLS_CHACHA20_POLY1305_SHA256]:[ECDHE-ECDSA-AES128-GCM-SHA256|ECDHE-ECDSA-CHACHA20-POLY1305|ECDHE-RSA-AES128-GCM-SHA256|ECDHE-RSA-CHACHA20-POLY1305]:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
