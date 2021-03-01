@@ -37,44 +37,44 @@ while true; do
 done
 
 set -euov pipefail
-apt update
+apt update -qq
 apt install -y build-essential autoconf automake libatomic-ops-dev libgeoip-dev libbrotli-dev curl git unzip wget
 
 mkdir ~/nginx-src
 cd ~/nginx-src
 
 # Nginx 1.19.7
-wget https://nginx.org/download/nginx-1.19.7.tar.gz
+wget -q https://nginx.org/download/nginx-1.19.7.tar.gz
 tar zxf nginx-1.19.7.tar.gz && rm nginx-1.19.7.tar.gz
 
 # FULL HPACK, Dynamic TLS Record patch
 pushd nginx-1.19.7
-curl https://raw.githubusercontent.com/kn007/patch/master/nginx.patch | patch -p1
+curl -s https://raw.githubusercontent.com/kn007/patch/master/nginx.patch | patch -p1
 popd
 
 if $io_uring
 then
   # io_uring patch
   pushd nginx-1.19.7
-  curl https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/nginx_io_uring.patch | patch -p1
+  curl -s https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/nginx_io_uring.patch | patch -p1
   popd
 fi
 
 # OpenSSL 1.1.1d
-wget https://www.openssl.org/source/openssl-1.1.1d.tar.gz
+wget -q https://www.openssl.org/source/openssl-1.1.1d.tar.gz
 tar zxf openssl-1.1.1d.tar.gz && rm openssl-1.1.1d.tar.gz
 
 # OpenSSL patch
 pushd openssl-1.1.1d
-curl https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/openssl-1.1.1d-chacha_draft.patch | patch -p1
+curl -s https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/openssl-1.1.1d-chacha_draft.patch | patch -p1
 popd
 
 pushd openssl-1.1.1d
-curl https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/openssl-equal-1.1.1d_ciphers.patch | patch -p1
+curl -s https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/openssl-equal-1.1.1d_ciphers.patch | patch -p1
 popd
 
 # jemalloc
-git clone https://github.com/jemalloc/jemalloc.git
+git clone -q https://github.com/jemalloc/jemalloc.git
 pushd jemalloc
 ./autogen.sh
 make -j$(nproc --all)
@@ -88,32 +88,32 @@ popd
 if $io_uring
 then
   # io_uring lib
-  git clone https://github.com/axboe/liburing.git
+  git clone -q https://github.com/axboe/liburing.git
   pushd liburing
   make && make install
   popd
 fi
 
 # zlib Cloudflare ver
-git clone -b master https://github.com/cloudflare/zlib.git
+git clone -q -b master https://github.com/cloudflare/zlib.git
 pushd zlib
 ./configure
 make && make install
 popd
 
 # pcre
-wget https://ftp.pcre.org/pub/pcre/pcre-8.44.zip
+wget -q https://ftp.pcre.org/pub/pcre/pcre-8.44.zip
 unzip -oq pcre-8.44.zip && rm pcre-8.44.zip
 mv pcre-8.44 pcre
 
 # ngx_brotli
-git clone https://github.com/google/ngx_brotli.git
+git clone -q https://github.com/google/ngx_brotli.git
 pushd ngx_brotli
 git submodule update --init
 popd
 
 # LuaJit
-wget https://github.com/openresty/luajit2/archive/v2.1-20190626.tar.gz
+wget -q https://github.com/openresty/luajit2/archive/v2.1-20190626.tar.gz
 tar zxf v2.1-20190626.tar.gz && rm v2.1-20190626.tar.gz
 mv luajit2-2.1-20190626 luajit-2.1
 pushd luajit-2.1
@@ -127,7 +127,7 @@ export LUAJIT_LIB=/usr/local/lib
 export LUAJIT_INC=/usr/local/include/luajit-2.1
 
 # lua resty core
-wget https://github.com/openresty/lua-resty-core/archive/v0.1.17.tar.gz
+wget -q https://github.com/openresty/lua-resty-core/archive/v0.1.17.tar.gz
 tar zxf v0.1.17.tar.gz && rm v0.1.17.tar.gz
 mv lua-resty-core-0.1.17 lua-resty-core
 pushd lua-resty-core
@@ -135,7 +135,7 @@ make && make install
 popd
 
 # lua cjson
-wget https://github.com/openresty/lua-cjson/archive/2.1.0.7.tar.gz
+wget -q https://github.com/openresty/lua-cjson/archive/2.1.0.7.tar.gz
 tar zxf 2.1.0.7.tar.gz && rm 2.1.0.7.tar.gz
 mv lua-cjson-2.1.0.7 lua-cjson
 pushd lua-cjson
@@ -143,7 +143,7 @@ make && make install
 popd
 
 # lua resty lrucache
-wget https://github.com/openresty/lua-resty-lrucache/archive/v0.09.tar.gz
+wget -q https://github.com/openresty/lua-resty-lrucache/archive/v0.09.tar.gz
 tar zxf v0.09.tar.gz && rm v0.09.tar.gz
 mv lua-resty-lrucache-0.09 lua-resty-lrucache
 pushd lua-resty-lrucache
@@ -151,31 +151,31 @@ make && make install
 popd
 
 # lua module
-wget https://github.com/openresty/lua-nginx-module/archive/v0.10.15.tar.gz
+wget -q https://github.com/openresty/lua-nginx-module/archive/v0.10.15.tar.gz
 tar zxf v0.10.15.tar.gz && rm v0.10.15.tar.gz
 mv lua-nginx-module-0.10.15 lua-nginx-module
 
 # NDK
-wget https://github.com/simplresty/ngx_devel_kit/archive/v0.3.1rc1.tar.gz
+wget -q https://github.com/simplresty/ngx_devel_kit/archive/v0.3.1rc1.tar.gz
 tar zxf v0.3.1rc1.tar.gz && rm v0.3.1rc1.tar.gz
 mv ngx_devel_kit-0.3.1rc1 ngx_devel_kit
 
 if $vod
 then
   # nginx-vod-module
-  wget https://github.com/kaltura/nginx-vod-module/archive/1.24.tar.gz
+  wget -q https://github.com/kaltura/nginx-vod-module/archive/1.24.tar.gz
   tar zxf 1.24.tar.gz && rm 1.24.tar.gz
   mv nginx-vod-module-1.24 nginx-vod-module
   if $mkv
   then
     pushd nginx-vod-module
-    curl https://gist.githubusercontent.com/ShadowySpirits/d2e0e056f838ad204a10e6c38c2375fa/raw/8af12279476cd4feda4e64458e857953eaf12d7c/nginx-vod-module_mkv_support.patch | patch -p1
+    curl -s https://gist.githubusercontent.com/ShadowySpirits/d2e0e056f838ad204a10e6c38c2375fa/raw/8af12279476cd4feda4e64458e857953eaf12d7c/nginx-vod-module_mkv_support.patch | patch -p1
     popd
   fi
 fi
 
 # libmaxminddb
-wget https://github.com/maxmind/libmaxminddb/releases/download/1.3.2/libmaxminddb-1.3.2.tar.gz
+wget -q https://github.com/maxmind/libmaxminddb/releases/download/1.3.2/libmaxminddb-1.3.2.tar.gz
 tar zxf libmaxminddb-1.3.2.tar.gz && rm libmaxminddb-1.3.2.tar.gz
 mv libmaxminddb-1.3.2 libmaxminddb
 pushd libmaxminddb
@@ -185,17 +185,17 @@ ldconfig
 popd
 
 # ngx_http_geoip2_module
-wget https://github.com/leev/ngx_http_geoip2_module/archive/3.2.tar.gz
+wget -q https://github.com/leev/ngx_http_geoip2_module/archive/3.2.tar.gz
 tar zxf 3.2.tar.gz && rm 3.2.tar.gz
 mv ngx_http_geoip2_module-3.2 ngx_http_geoip2_module
 
 # nginx-sorted-querystring-module
-wget https://github.com/wandenberg/nginx-sorted-querystring-module/archive/0.3.tar.gz
+wget -q https://github.com/wandenberg/nginx-sorted-querystring-module/archive/0.3.tar.gz
 tar zxf 0.3.tar.gz && rm 0.3.tar.gz
 mv nginx-sorted-querystring-module-0.3 nginx-sorted-querystring-module
 
 # ngx_http_substitutions_filter_module
-wget https://github.com/yaoweibin/ngx_http_substitutions_filter_module/archive/v0.6.4.tar.gz
+wget -q https://github.com/yaoweibin/ngx_http_substitutions_filter_module/archive/v0.6.4.tar.gz
 tar zxf v0.6.4.tar.gz && rm v0.6.4.tar.gz
 mv ngx_http_substitutions_filter_module-0.6.4 ngx_http_substitutions_filter_module
 
@@ -322,7 +322,7 @@ make install
 cd /etc/nginx
 if $waf
 then
-  git clone https://github.com/xzhih/ngx_lua_waf.git waf 
+  git clone -q https://github.com/xzhih/ngx_lua_waf.git waf 
   mkdir -p /home/wwwlogs/waf
 fi
 mkdir -p /home/wwwroot
@@ -399,7 +399,6 @@ http {
   resolver 1.1.1.1 1.0.0.1 8.8.8.8 8.8.4.4 208.67.222.222 208.67.220.220 valid=60s;
   resolver_timeout 2s;
 
-  ssl_reject_handshake        on;
   ssl_protocols               TLSv1.2 TLSv1.3;
   ssl_ecdh_curve              X25519:P-256:P-384:P-224:P-521;
   ssl_ciphers                 [TLS_AES_256_GCM_SHA384|TLS_AES_128_GCM_SHA256|TLS_CHACHA20_POLY1305_SHA256]:[ECDHE-ECDSA-AES128-GCM-SHA256|ECDHE-ECDSA-CHACHA20-POLY1305|ECDHE-RSA-AES128-GCM-SHA256|ECDHE-RSA-CHACHA20-POLY1305]:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
