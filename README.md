@@ -4,7 +4,7 @@ Useful scripts for vps management
 
 ## nginx_install.sh
 
-install nginx 1.19.7 with TLS1.3 & WAF & io_uring support
+install nginx 1.21.3 with TLS1.3 & WAF & io_uring support
 
 use it as follow:
 ```
@@ -22,7 +22,7 @@ curl https://raw.githubusercontent.com/ShadowySpirits/vps-setup/master/nginx_ins
 ### build docker image
 ```
 wget https://raw.githubusercontent.com/ShadowySpirits/vps-setup/master/nginx.Dockerfile
-docker build -t my_nginx:v1.19.7 -f nginx.Dockerfile .
+docker build -t my_nginx:v1.21.3 -f nginx.Dockerfile .
 ```
 
 ## deluge_install.sh

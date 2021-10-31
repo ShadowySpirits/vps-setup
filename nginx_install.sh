@@ -43,19 +43,19 @@ apt install -y build-essential autoconf automake libatomic-ops-dev libgeoip-dev 
 mkdir ~/nginx-src
 cd ~/nginx-src
 
-# Nginx 1.19.7
-wget -q https://nginx.org/download/nginx-1.19.7.tar.gz
-tar zxf nginx-1.19.7.tar.gz && rm nginx-1.19.7.tar.gz
+# Nginx 1.21.3
+wget -q https://nginx.org/download/nginx-1.21.3.tar.gz
+tar zxf nginx-1.21.3.tar.gz && rm nginx-1.21.3.tar.gz
 
 # FULL HPACK, Dynamic TLS Record patch
-pushd nginx-1.19.7
+pushd nginx-1.21.3
 curl -s https://raw.githubusercontent.com/kn007/patch/master/nginx.patch | patch -p1
 popd
 
 if $io_uring
 then
   # io_uring patch
-  pushd nginx-1.19.7
+  pushd nginx-1.21.3
   curl -s https://raw.githubusercontent.com/hakasenyang/openssl-patch/master/nginx_io_uring.patch | patch -p1
   popd
 fi
@@ -199,7 +199,7 @@ wget -q https://github.com/yaoweibin/ngx_http_substitutions_filter_module/archiv
 tar zxf v0.6.4.tar.gz && rm v0.6.4.tar.gz
 mv ngx_http_substitutions_filter_module-0.6.4 ngx_http_substitutions_filter_module
 
-cd nginx-1.19.7
+cd nginx-1.21.3
 
 sed -i 's@CFLAGS="$CFLAGS -g"@#CFLAGS="$CFLAGS -g"@' auto/cc/gcc
 
